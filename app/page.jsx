@@ -43,7 +43,7 @@ export default async function ShowSchoolsPage() {
             href="/add-school"
             className="bg-indigo-600 text-white py-2 px-5 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105"
           >
-            + Add School
+            Add School
           </Link>
         </div>
 

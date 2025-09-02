@@ -8,20 +8,11 @@ const prisma = new PrismaClient();
 export async function POST(request) {
   try {
     const data = await request.formData();
-    const file = data.get("image");
+    const imageUrl = data.get("image");
 
-    if (!file) {
-      return NextResponse.json({ success: false, error: "No image found" });
+    if (!imageUrl) {
+      return NextResponse.json({ success: false, error: "No image URL found" });
     }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const filename = Date.now() + path.extname(file.name);
-    const imagePath = path.join(process.cwd(), "public/schoolImages", filename);
-
-    await writeFile(imagePath, buffer);
-    console.log(`Image saved at ${imagePath}`);
 
     const newSchool = await prisma.schools.create({
       data: {
@@ -31,7 +22,7 @@ export async function POST(request) {
         state: data.get("state"),
         contact: BigInt(data.get("contact")),
         email_id: data.get("email_id"),
-        image: `/schoolImages/${filename}`,
+        image: imageUrl,
       },
     });
 

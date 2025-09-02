@@ -10,7 +10,6 @@ export default function AddSchoolPage() {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
     setValue,
   } = useForm();
 
@@ -21,7 +20,6 @@ export default function AddSchoolPage() {
   useEffect(() => {
     if (typeof window.uploadcare !== "undefined") {
       const widget = window.uploadcare.Widget("[role=uploadcare-uploader]");
-
       widget.onUploadComplete((fileInfo) => {
         setValue("image", fileInfo.cdnUrl);
       });
@@ -33,20 +31,15 @@ export default function AddSchoolPage() {
     setMessage("");
 
     const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("address", data.address);
-    formData.append("city", data.city);
-    formData.append("state", data.state);
-    formData.append("contact", data.contact);
-    formData.append("email_id", data.email_id);
-    formData.append("image", data.image);
+    Object.keys(data).forEach((key) => {
+      formData.append(key, data[key]);
+    });
 
     try {
       const response = await fetch("/api/schools", {
         method: "POST",
         body: formData,
       });
-
       const result = await response.json();
 
       if (result.success) {
@@ -63,13 +56,13 @@ export default function AddSchoolPage() {
 
   return (
     <>
+      <Script id="uploadcare-config" strategy="beforeInteractive">
+        {`UPLOADCARE_PUBLIC_KEY = "${process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY}";`}
+      </Script>
       <Script
         src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"
         strategy="lazyOnload"
       />
-      <Script id="uploadcare-config">
-        {`UPLOADCARE_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';`}
-      </Script>
 
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
         <div className="max-w-2xl w-full bg-gradient-to-br from-yellow-200 via-pink-300 to-purple-300 p-8 rounded-lg shadow-md">
@@ -77,6 +70,7 @@ export default function AddSchoolPage() {
             Add New School
           </h1>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* All text input fields remain the same */}
             <div>
               <label
                 htmlFor="name"
@@ -204,13 +198,11 @@ export default function AddSchoolPage() {
               <label className="block text-sm font-medium text-gray-700">
                 School Image
               </label>
-
               <input
                 type="hidden"
                 role="uploadcare-uploader"
                 data-images-only
               />
-
               <input
                 type="hidden"
                 {...register("image", { required: "An image is required" })}

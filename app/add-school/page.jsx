@@ -19,16 +19,26 @@ export default function AddSchoolPage() {
   const router = useRouter();
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
-  useEffect(() => {
-    if (isScriptLoaded && typeof window.uploadcare !== "undefined") {
-      const widget = window.uploadcare.Widget("[role=uploadcare-uploader]");
-
-      widget.onUploadComplete((fileInfo) => {
-        setValue("image", fileInfo.cdnUrl);
-        trigger("image");
-      });
+  const openCloudinaryWidget = () => {
+    if (isScriptLoaded && window.cloudinary) {
+      const widget = window.cloudinary.createUploadWidget(
+        {
+          cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+          uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+          sources: ["local", "url", "camera"],
+          multiple: false,
+          cropping: true,
+        },
+        (error, result) => {
+          if (!error && result && result.event === "success") {
+            setValue("image", result.info.secure_url);
+            trigger("image");
+          }
+        }
+      );
+      widget.open();
     }
-  }, [isScriptLoaded, setValue, trigger]);
+  };
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
@@ -60,11 +70,8 @@ export default function AddSchoolPage() {
 
   return (
     <>
-      <Script id="uploadcare-config" strategy="beforeInteractive">
-        {`UPLOADCARE_PUBLIC_KEY = "${process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY}";`}
-      </Script>
       <Script
-        src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"
+        src="https://upload-widget.cloudinary.com/global/all.js"
         strategy="lazyOnload"
         onLoad={() => setIsScriptLoaded(true)}
       />
@@ -202,17 +209,20 @@ export default function AddSchoolPage() {
               <label className="block text-sm font-medium text-gray-700">
                 School Image
               </label>
-              <input
-                type="hidden"
-                role="uploadcare-uploader"
-                data-images-only
-              />
+              <button
+                type="button"
+                onClick={openCloudinaryWidget}
+                className="mt-1 w-full bg-white text-gray-700 py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-50"
+              >
+                Upload an Image
+              </button>
+
               <input
                 type="hidden"
                 {...register("image", { required: "An image is required" })}
               />
               {errors.image && (
-                <span className="text-red-500 text-sm">
+                <span className="text-red-500 text-sm mt-1 block">
                   {errors.image.message}
                 </span>
               )}

@@ -11,20 +11,24 @@ export default function AddSchoolPage() {
     handleSubmit,
     formState: { errors },
     setValue,
+    trigger,
   } = useForm();
 
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   useEffect(() => {
-    if (typeof window.uploadcare !== "undefined") {
+    if (isScriptLoaded && typeof window.uploadcare !== "undefined") {
       const widget = window.uploadcare.Widget("[role=uploadcare-uploader]");
+
       widget.onUploadComplete((fileInfo) => {
         setValue("image", fileInfo.cdnUrl);
+        trigger("image");
       });
     }
-  }, [setValue]);
+  }, [isScriptLoaded, setValue, trigger]);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
@@ -62,6 +66,7 @@ export default function AddSchoolPage() {
       <Script
         src="https://ucarecdn.com/libs/widget/3.x/uploadcare.full.min.js"
         strategy="lazyOnload"
+        onLoad={() => setIsScriptLoaded(true)}
       />
 
       <div className="min-h-screen bg-black flex items-center justify-center p-4">
@@ -70,7 +75,6 @@ export default function AddSchoolPage() {
             Add New School
           </h1>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* All text input fields remain the same */}
             <div>
               <label
                 htmlFor="name"
